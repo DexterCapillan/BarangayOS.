@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import BackButton from './backbutton.js'; // Import the BackButton
 
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
@@ -122,7 +123,9 @@ const ResidentsTable = () => {
   };
 
   return (
-    <div className="container mx-auto mt-8">
+    <div className="container mx-auto mt-8 px-6">
+      {/* Render BackButton here */}
+      <BackButton /> 
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
       <button
@@ -296,6 +299,8 @@ const ResidentsTable = () => {
       {isLoading ? (
         <p className="text-gray-500">Loading...</p>
       ) : (
+        <div className="overflow-x-auto max-w-full">
+
         <table className="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
             <tr className="bg-green-500 text-white">
@@ -351,9 +356,10 @@ const ResidentsTable = () => {
             ))}
           </tbody>
         </table>
+      </div>
       )}
     </div>
   );
 };
-
+        
 export default ResidentsTable;

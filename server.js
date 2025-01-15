@@ -7,32 +7,37 @@ const app = express();
 app.use(express.json());
 app.use(cors());  // Enable CORS
 
-// Create a connection to MySQL
-const db = mysql.createConnection({
+// Create a connection pool to MySQL for better handling of multiple requests
+const pool = mysql.createPool({
   host: 'localhost',
-  user: 'root', // Your MySQL username
-  password: 'barangayOS', // Replace with your MySQL password
+  user: 'root', // username
+  password: 'barangayOS', // password
   database: 'residents_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
 
-// Connect to the database
-db.connect((err) => {
+// Test the database connection
+pool.getConnection((err, connection) => {
   if (err) {
     console.error('Database connection failed:', err.stack);
-    return;
+    process.exit(1);
   }
   console.log('Connected to MySQL database');
+  connection.release();  // Release the connection
 });
+
+// --- Residents Routes ---
 
 // Route to get all residents
 app.get('/residents', (req, res) => {
-  db.query('SELECT * FROM residents', (err, results) => {
+  pool.query('SELECT * FROM residents', (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
-      res.status(500).json({ error: 'Failed to fetch data' });
-    } else {
-      res.json(results); // Send the residents as JSON
+      return res.status(500).json({ error: 'Failed to fetch data' });
     }
+    res.json(results); // Send the residents as JSON
   });
 });
 
@@ -56,6 +61,11 @@ app.post('/residents', (req, res) => {
     occupation,
   } = req.body;
 
+  // Basic validation for missing fields
+  if (!id_no || !last_name || !first_name || !birthdate) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
   // Calculate age based on birthdate
   const birthDate = new Date(birthdate);
   const today = new Date();
@@ -64,7 +74,7 @@ app.post('/residents', (req, res) => {
   const query =
     'INSERT INTO residents (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, civil_status, citizenship, birthdate, age, occupation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
-  db.query(
+  pool.query(
     query,
     [
       id_no,
@@ -87,28 +97,27 @@ app.post('/residents', (req, res) => {
     (err, results) => {
       if (err) {
         console.error('Error inserting data:', err);
-        res.status(500).json({ error: 'Failed to insert data' });
-      } else {
-        res.status(201).json({
-          id: results.insertId,
-          id_no,
-          last_name,
-          first_name,
-          middle_initial,
-          household_no,
-          household_role,
-          extension,
-          number,
-          street_name,
-          subdivision,
-          place_of_birth,
-          civil_status,
-          citizenship,
-          birthdate,
-          age,
-          occupation,
-        });
+        return res.status(500).json({ error: 'Failed to insert data' });
       }
+      res.status(201).json({
+        id: results.insertId,
+        id_no,
+        last_name,
+        first_name,
+        middle_initial,
+        household_no,
+        household_role,
+        extension,
+        number,
+        street_name,
+        subdivision,
+        place_of_birth,
+        civil_status,
+        citizenship,
+        birthdate,
+        age,
+        occupation,
+      });
     }
   );
 });
@@ -118,7 +127,7 @@ app.delete('/residents/:id', (req, res) => {
   const residentId = req.params.id;
   const query = 'DELETE FROM residents WHERE id = ?';
 
-  db.query(query, [residentId], (err, results) => {
+  pool.query(query, [residentId], (err, results) => {
     if (err) {
       console.error('Error deleting resident:', err);
       return res.status(500).json({ error: 'Failed to delete resident' });
@@ -129,6 +138,109 @@ app.delete('/residents/:id', (req, res) => {
     }
 
     res.status(200).json({ message: 'Resident deleted successfully' });
+  });
+});
+
+// --- Deceased Persons Routes ---
+
+// Route to get all deceased persons
+app.get('/deceased', (req, res) => {
+  pool.query('SELECT * FROM deceased', (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      return res.status(500).json({ error: 'Failed to fetch data' });
+    }
+    res.json(results); // Send the deceased persons as JSON
+  });
+});
+
+// Route to add a new deceased person
+app.post('/deceased', (req, res) => {
+  const {
+    id_no,
+    last_name,
+    first_name,
+    middle_initial,
+    household_no,
+    household_role,
+    extension,
+    number,
+    street_name,
+    subdivision,
+    place_of_birth,
+    birthdate,
+    death_date,
+    cause_of_death,
+  } = req.body;
+
+  // Basic validation for missing fields
+  if (!id_no || !last_name || !first_name || !birthdate || !death_date) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  const query =
+    'INSERT INTO deceased (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, birthdate, death_date, cause_of_death) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+
+  pool.query(
+    query,
+    [
+      id_no,
+      last_name,
+      first_name,
+      middle_initial,
+      household_no,
+      household_role,
+      extension,
+      number,
+      street_name,
+      subdivision,
+      place_of_birth,
+      birthdate,
+      death_date,
+      cause_of_death,
+    ],
+    (err, results) => {
+      if (err) {
+        console.error('Error inserting data:', err);
+        return res.status(500).json({ error: 'Failed to insert data' });
+      }
+      res.status(201).json({
+        id: results.insertId,
+        id_no,
+        last_name,
+        first_name,
+        middle_initial,
+        household_no,
+        household_role,
+        extension,
+        number,
+        street_name,
+        subdivision,
+        place_of_birth,
+        birthdate,
+        death_date,
+        cause_of_death,
+      });
+    }
+  );
+});
+
+// Route to delete a deceased person by id
+app.delete('/deceased/:id', (req, res) => {
+  const deceasedId = req.params.id;
+  const query = 'DELETE FROM deceased WHERE id = ?';
+
+  pool.query(query, [deceasedId], (err, results) => {
+    if (err) {
+      console.error('Error deleting deceased person:', err);
+      return res.status(500).json({ error: 'Failed to delete deceased person' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Deceased person not found' });
+    }
+
+    res.status(200).json({ message: 'Deceased person deleted successfully' });
   });
 });
 
