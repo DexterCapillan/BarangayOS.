@@ -36,24 +36,12 @@ const ResidentsTable = () => {
       });
   }, []);
 
-  // Calculate age considering current date and birthdate
-  const calculateAge = (birthdate) => {
-    const birthDate = new Date(birthdate);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    if (
-      today.getMonth() < birthDate.getMonth() ||
-      (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-    return age;
-  };
-
+  
+  
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-
+  
     const newResident = {
       id_no: idNo,
       last_name: lastName,
@@ -72,7 +60,7 @@ const ResidentsTable = () => {
       occupation,
       member,
     };
-
+  
     fetch('http://localhost:5000/residents', {
       method: 'POST',
       headers: {
@@ -85,6 +73,7 @@ const ResidentsTable = () => {
         alert('Resident added successfully!');
         setResidents((prevResidents) => [...prevResidents, data]);
         setShowForm(false);
+        // Reset form fields
         setIdNo('');
         setLastName('');
         setFirstName('');
@@ -104,6 +93,7 @@ const ResidentsTable = () => {
       })
       .catch((error) => console.error('Error:', error));
   };
+  
 
   // Handle resident deletion
   const handleDelete = (id) => {
@@ -125,7 +115,7 @@ const ResidentsTable = () => {
   return (
     <div className="container mx-auto mt-8 px-6">
       {/* Render BackButton here */}
-      <BackButton /> 
+      <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
       <button
@@ -325,41 +315,41 @@ const ResidentsTable = () => {
             </tr>
           </thead>
           <tbody>
-            {residents.map((resident) => (
-              <tr key={resident.id} className="border-b hover:bg-gray-100">
-                <td className="px-6 py-4">{resident.id_no}</td>
-                <td className="px-6 py-4">{resident.last_name}</td>
-                <td className="px-6 py-4">{resident.first_name}</td>
-                <td className="px-6 py-4">{resident.middle_initial}</td>
-                <td className="px-6 py-4">{resident.household_no}</td>
-                <td className="px-6 py-4">{resident.household_role}</td>
-                <td className="px-6 py-4">{resident.extension}</td>
-                <td className="px-6 py-4">{resident.number}</td>
-                <td className="px-6 py-4">{resident.street_name}</td>
-                <td className="px-6 py-4">{resident.subdivision}</td>
-                <td className="px-6 py-4">{resident.place_of_birth}</td>
-                <td className="px-6 py-4">{resident.birthdate}</td>
-                <td className="px-6 py-4">{calculateAge(resident.birthdate)}</td>
-                <td className="px-6 py-4">{resident.civil_status}</td>
-                <td className="px-6 py-4">{resident.citizenship}</td>
-                <td className="px-6 py-4">{resident.occupation}</td>
-                <td className="px-6 py-4">{resident.member}</td>
-                <td className="px-6 py-4">
-                  <button
-                    onClick={() => handleDelete(resident.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+  {residents.map((resident) => (
+    <tr key={resident.id} className="border-b hover:bg-gray-100">
+      <td className="px-6 py-4">{resident.id_no}</td>
+      <td className="px-6 py-4">{resident.last_name}</td>
+      <td className="px-6 py-4">{resident.first_name}</td>
+      <td className="px-6 py-4">{resident.middle_initial}</td>
+      <td className="px-6 py-4">{resident.household_no}</td>
+      <td className="px-6 py-4">{resident.household_role}</td>
+      <td className="px-6 py-4">{resident.extension}</td>
+      <td className="px-6 py-4">{resident.number}</td>
+      <td className="px-6 py-4">{resident.street_name}</td>
+      <td className="px-6 py-4">{resident.subdivision}</td>
+      <td className="px-6 py-4">{resident.place_of_birth}</td>
+      <td className="px-6 py-4">{resident.birthdate}</td>
+      <td className="px-6 py-4">{resident.age}</td> {/* The backend should now send 'age' */}
+      <td className="px-6 py-4">{resident.civil_status}</td>
+      <td className="px-6 py-4">{resident.citizenship}</td>
+      <td className="px-6 py-4">{resident.occupation}</td>
+      <td className="px-6 py-4">{resident.member}</td>
+      <td className="px-6 py-4">
+        <button
+          onClick={() => handleDelete(resident.id)}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
         </table>
       </div>
       )}
     </div>
   );
 };
-        
+
 export default ResidentsTable;

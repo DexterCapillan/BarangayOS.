@@ -1,6 +1,7 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const moment = require('moment'); // Import Moment.js
 
 // Initialize express app
 const app = express();
@@ -66,11 +67,13 @@ app.post('/residents', (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Calculate age based on birthdate
-  const birthDate = new Date(birthdate);
-  const today = new Date();
-  const age = today.getFullYear() - birthDate.getFullYear();
+  // Calculate age based on birthdate using Moment.js
+  const birthDate = moment(birthdate); // Convert the birthdate to a moment object
+  const age = moment().diff(birthDate, 'years'); // Calculate the age in years
 
+  console.log("Calculated Age:", age); // Debugging the age calculation
+
+  // SQL query to insert the resident data along with the calculated age
   const query =
     'INSERT INTO residents (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, civil_status, citizenship, birthdate, age, occupation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
@@ -91,7 +94,7 @@ app.post('/residents', (req, res) => {
       civil_status,
       citizenship,
       birthdate,
-      age,
+      age, // Add the calculated age
       occupation,
     ],
     (err, results) => {
@@ -99,6 +102,7 @@ app.post('/residents', (req, res) => {
         console.error('Error inserting data:', err);
         return res.status(500).json({ error: 'Failed to insert data' });
       }
+
       res.status(201).json({
         id: results.insertId,
         id_no,
@@ -115,7 +119,7 @@ app.post('/residents', (req, res) => {
         civil_status,
         citizenship,
         birthdate,
-        age,
+        age, // Include the calculated age in the response
         occupation,
       });
     }
