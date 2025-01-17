@@ -39,19 +39,7 @@ const DeceasedTable = () => {
       });
   }, []);
 
-  // Calculate age based on birthdate
-  const calculateAge = (birthdate) => {
-    const birthDate = new Date(birthdate);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    if (
-      today.getMonth() < birthDate.getMonth() ||
-      (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
-    ) {
-      age--;
-    }
-    return age;
-  };
+ 
 
   // Handle form submission using fetch
   const handleSubmit = (e) => {
@@ -198,41 +186,42 @@ const DeceasedTable = () => {
                 <th className="px-6 py-3">Subdivision</th>
                 <th className="px-6 py-3">Place of Birth</th>
                 <th className="px-6 py-3">Birthdate</th>
-                <th className="px-6 py-3">Age</th>
+                <th className="px-6 py-3">Age of death</th>
                 <th className="px-6 py-3">Death Date</th>
                 <th className="px-6 py-3">Cause of Death</th>
                 <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {Array.isArray(deceased) && deceased.map((person) => (
-                <tr key={person.id} className="border-b hover:bg-gray-100">
-                  <td className="px-6 py-4">{person.id_no}</td>
-                  <td className="px-6 py-4">{person.last_name}</td>
-                  <td className="px-6 py-4">{person.first_name}</td>
-                  <td className="px-6 py-4">{person.middle_initial}</td>
-                  <td className="px-6 py-4">{person.household_no}</td>
-                  <td className="px-6 py-4">{person.household_role}</td>
-                  <td className="px-6 py-4">{person.extension}</td>
-                  <td className="px-6 py-4">{person.number}</td>
-                  <td className="px-6 py-4">{person.street_name}</td>
-                  <td className="px-6 py-4">{person.subdivision}</td>
-                  <td className="px-6 py-4">{person.place_of_birth}</td>
-                  <td className="px-6 py-4">{person.birthdate}</td>
-                  <td className="px-6 py-4">{calculateAge(person.birthdate)}</td>
-                  <td className="px-6 py-4">{person.death_date}</td>
-                  <td className="px-6 py-4">{person.cause_of_death}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(person.id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {Array.isArray(deceased) && deceased.map((person) => (
+    <tr key={person.id} className="border-b hover:bg-gray-100">
+      <td className="px-6 py-4">{person.id_no}</td>
+      <td className="px-6 py-4">{person.last_name}</td>
+      <td className="px-6 py-4">{person.first_name}</td>
+      <td className="px-6 py-4">{person.middle_initial}</td>
+      <td className="px-6 py-4">{person.household_no}</td>
+      <td className="px-6 py-4">{person.household_role}</td>
+      <td className="px-6 py-4">{person.extension}</td>
+      <td className="px-6 py-4">{person.number}</td>
+      <td className="px-6 py-4">{person.street_name}</td>
+      <td className="px-6 py-4">{person.subdivision}</td>
+      <td className="px-6 py-4">{person.place_of_birth}</td>
+      <td className="px-6 py-4">{person.birthdate}</td>
+      <td className="px-6 py-4">{person.age_at_death}</td>
+      <td className="px-6 py-4">{person.death_date}</td>
+      <td className="px-6 py-4">{person.cause_of_death}</td>
+      <td className="px-6 py-4">
+        <button
+          onClick={() => handleDelete(person.id)}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Delete
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
           </table>
         </div>
       )}

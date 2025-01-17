@@ -147,17 +147,19 @@ app.delete('/residents/:id', (req, res) => {
 
 // --- Deceased Persons Routes ---
 
-// Route to get all deceased persons
+// Route to fetch all deceased persons
 app.get('/deceased', (req, res) => {
-  pool.query('SELECT * FROM deceased', (err, results) => {
+  const query = 'SELECT * FROM deceased';
+
+  pool.query(query, (err, results) => {
     if (err) {
-      console.error('Error fetching data:', err);
-      return res.status(500).json({ error: 'Failed to fetch data' });
+      console.error('Error fetching deceased persons:', err);
+      return res.status(500).json({ error: 'Failed to fetch deceased persons' });
     }
-    res.json(results); // Send the deceased persons as JSON
+
+    res.status(200).json(results); // Return the list of deceased persons
   });
 });
-
 // Route to add a new deceased person
 app.post('/deceased', (req, res) => {
   const {
@@ -182,8 +184,15 @@ app.post('/deceased', (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  // Calculate age at the time of death
+  const birthDate = moment(birthdate); // Convert the birthdate to a moment object
+  const deathDate = moment(death_date); // Convert the death date to a moment object
+  const ageAtDeath = deathDate.diff(birthDate, 'years'); // Calculate the age at death in years
+
+  console.log('Calculated Age at Death:', ageAtDeath); // Debugging the age calculation
+
   const query =
-    'INSERT INTO deceased (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, birthdate, death_date, cause_of_death) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    'INSERT INTO deceased (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, birthdate, death_date, cause_of_death, age_at_death) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
   pool.query(
     query,
@@ -202,6 +211,7 @@ app.post('/deceased', (req, res) => {
       birthdate,
       death_date,
       cause_of_death,
+      ageAtDeath, // Add the calculated age at death
     ],
     (err, results) => {
       if (err) {
@@ -224,10 +234,12 @@ app.post('/deceased', (req, res) => {
         birthdate,
         death_date,
         cause_of_death,
+        ageAtDeath, // Include the calculated age at death in the response
       });
     }
   );
 });
+
 
 // Route to delete a deceased person by id
 app.delete('/deceased/:id', (req, res) => {
