@@ -29,16 +29,94 @@ pool.getConnection((err, connection) => {
   connection.release();  // Release the connection
 });
 
-// --- Residents Routes ---
+// Function to validate date format
+const isValidDate = (dateString) => {
+  return moment(dateString, 'YYYY-MM-DD', true).isValid();
+};
 
-// Route to get all residents
+// --- Residents Routes ---
+// Route to get all residents with pagination
 app.get('/residents', (req, res) => {
-  pool.query('SELECT * FROM residents', (err, results) => {
+  const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
+  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
+  const offset = (page - 1) * limit;  // Calculate the offset for the query
+
+  const query = 'SELECT * FROM residents LIMIT ? OFFSET ?';
+
+  pool.query(query, [limit, offset], (err, results) => {
     if (err) {
       console.error('Error fetching data:', err);
       return res.status(500).json({ error: 'Failed to fetch data' });
     }
-    res.json(results); // Send the residents as JSON
+
+    // Get the total number of residents for pagination info
+    pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
+      if (err) {
+        console.error('Error fetching total count:', err);
+        return res.status(500).json({ error: 'Failed to fetch total count' });
+      }
+
+      const totalResidents = countResults[0].total;
+      const totalPages = Math.ceil(totalResidents / limit);  // Calculate the total number of pages
+
+      // Format each resident's birthdate to YYYY-MM-DD
+      const formattedResults = results.map((resident) => {
+        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
+        return {
+          ...resident,
+          birthdate: formattedBirthdate,
+        };
+      });
+
+      res.json({
+        residents: formattedResults,
+        currentPage: page,
+        totalPages: totalPages,
+        totalResidents: totalResidents,
+      });
+    });
+  });
+});
+// Route to get all residents with pagination
+app.get('/residents', (req, res) => {
+  const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
+  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
+  const offset = (page - 1) * limit;  // Calculate the offset for the query
+
+  const query = 'SELECT * FROM residents LIMIT ? OFFSET ?';
+
+  pool.query(query, [limit, offset], (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      return res.status(500).json({ error: 'Failed to fetch data' });
+    }
+
+    // Get the total number of residents for pagination info
+    pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
+      if (err) {
+        console.error('Error fetching total count:', err);
+        return res.status(500).json({ error: 'Failed to fetch total count' });
+      }
+
+      const totalResidents = countResults[0].total;
+      const totalPages = Math.ceil(totalResidents / limit);  // Calculate the total number of pages
+
+      // Format each resident's birthdate to YYYY-MM-DD
+      const formattedResults = results.map((resident) => {
+        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
+        return {
+          ...resident,
+          birthdate: formattedBirthdate,
+        };
+      });
+
+      res.json({
+        residents: formattedResults,
+        currentPage: page,
+        totalPages: totalPages,
+        totalResidents: totalResidents,
+      });
+    });
   });
 });
 
@@ -65,6 +143,11 @@ app.post('/residents', (req, res) => {
   // Basic validation for missing fields
   if (!id_no || !last_name || !first_name || !birthdate) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Validate the birthdate format
+  if (!isValidDate(birthdate)) {
+    return res.status(400).json({ error: 'Invalid birthdate format. Use YYYY-MM-DD.' });
   }
 
   // Calculate age based on birthdate using Moment.js
@@ -147,19 +230,51 @@ app.delete('/residents/:id', (req, res) => {
 
 // --- Deceased Persons Routes ---
 
-// Route to fetch all deceased persons
+// Route to fetch all deceased persons with pagination
 app.get('/deceased', (req, res) => {
-  const query = 'SELECT * FROM deceased';
+  const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
+  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
+  const offset = (page - 1) * limit;  // Calculate the offset for the query
 
-  pool.query(query, (err, results) => {
+  const query = 'SELECT * FROM deceased LIMIT ? OFFSET ?';
+
+  pool.query(query, [limit, offset], (err, results) => {
     if (err) {
       console.error('Error fetching deceased persons:', err);
       return res.status(500).json({ error: 'Failed to fetch deceased persons' });
     }
 
-    res.status(200).json(results); // Return the list of deceased persons
+    // Get the total number of deceased persons for pagination info
+    pool.query('SELECT COUNT(*) AS total FROM deceased', (err, countResults) => {
+      if (err) {
+        console.error('Error fetching total count:', err);
+        return res.status(500).json({ error: 'Failed to fetch total count' });
+      }
+
+      const totalDeceased = countResults[0].total;
+      const totalPages = Math.ceil(totalDeceased / limit);  // Calculate the total number of pages
+
+      // Format each deceased person's birthdate and death_date to YYYY-MM-DD
+      const formattedResults = results.map((deceased) => {
+        const formattedBirthdate = moment(deceased.birthdate).format('YYYY-MM-DD');
+        const formattedDeathDate = moment(deceased.death_date).format('YYYY-MM-DD');
+        return {
+          ...deceased,
+          birthdate: formattedBirthdate,
+          death_date: formattedDeathDate,
+        };
+      });
+
+      res.json({
+        deceased: formattedResults,
+        currentPage: page,
+        totalPages: totalPages,
+        totalDeceased: totalDeceased,
+      });
+    });
   });
 });
+
 // Route to add a new deceased person
 app.post('/deceased', (req, res) => {
   const {
@@ -182,6 +297,11 @@ app.post('/deceased', (req, res) => {
   // Basic validation for missing fields
   if (!id_no || !last_name || !first_name || !birthdate || !death_date) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Validate the birthdate and death_date formats
+  if (!isValidDate(birthdate) || !isValidDate(death_date)) {
+    return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD.' });
   }
 
   // Calculate age at the time of death
@@ -239,7 +359,6 @@ app.post('/deceased', (req, res) => {
     }
   );
 });
-
 
 // Route to delete a deceased person by id
 app.delete('/deceased/:id', (req, res) => {

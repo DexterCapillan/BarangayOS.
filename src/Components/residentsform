@@ -11,9 +11,13 @@ const ResidentForm = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Convert birthdate from DD-MM-YYYY to YYYY-MM-DD
+    const [day, month, year] = birthdate.split('-');  // Assuming input format is DD-MM-YYYY
+    const formattedBirthdate = `${year}-${month}-${day}`; // Convert to YYYY-MM-DD
+
     const newResident = {
       name,
-      birthdate,
+      birthdate: formattedBirthdate,  // Use the formatted birthdate
       address,
       occupation,
       member,
@@ -59,10 +63,11 @@ const ResidentForm = () => {
         <div className="mb-4">
           <label className="block text-gray-700">Birthdate</label>
           <input
-            type="date"
+            type="text"  // Use text input for DD-MM-YYYY format
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
             className="w-full p-2 border border-gray-300 rounded"
+            placeholder="DD-MM-YYYY"
             required
           />
         </div>

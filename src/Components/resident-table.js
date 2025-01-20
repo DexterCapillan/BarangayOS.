@@ -21,7 +21,7 @@ const ResidentsTable = () => {
   const [occupation, setOccupation] = useState('');
   const [member, setMember] = useState('');
   const [isLoading, setIsLoading] = useState(true); // Loading indicator state
-
+  
   // Fetch residents data
   useEffect(() => {
     fetch('http://localhost:5000/residents')
@@ -112,6 +112,7 @@ const ResidentsTable = () => {
     }
   };
 
+  
   return (
     <div className="container mx-auto mt-8 px-6">
       {/* Render BackButton here */}
