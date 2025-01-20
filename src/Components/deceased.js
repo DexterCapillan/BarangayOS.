@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; 
+import ResponsivePagination from 'react-responsive-pagination';
+import 'react-responsive-pagination/themes/classic.css';
 
 const DeceasedTable = () => {
   const [deceased, setDeceased] = useState([]);  // Ensure initial value is an empty array
@@ -19,6 +21,10 @@ const DeceasedTable = () => {
   const [deathDate, setDeathDate] = useState('');
   const [causeOfDeath, setCauseOfDeath] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const [filteredDeceased, setFilteredDeceased] = useState([]);  // Store the filtered data
+  const [searchQuery, setSearchQuery] = useState('');  // Store the search query
 
   // Fetch deceased data using fetch API
   useEffect(() => {
@@ -111,6 +117,33 @@ const DeceasedTable = () => {
     }
   };
 
+ // Search functionality
+ useEffect(() => {
+  const delayDebounceFn = setTimeout(() => {
+    if (searchQuery) {
+      const filtered = deceased.filter((person) =>
+        person.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        person.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        person.id_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        person.household_no.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredDeceased(filtered);
+    } else {
+      setFilteredDeceased(deceased);  // If search query is empty, show all records
+    }
+  }, 300);  // 300ms debounce time
+
+  return () => clearTimeout(delayDebounceFn);
+}, [searchQuery, deceased]);
+
+
+
+ // Pagination logic
+ const indexOfLastDeceased = currentPage * itemsPerPage;
+ const indexOfFirstDeceased = indexOfLastDeceased - itemsPerPage;
+ const currentDeceased = filteredDeceased.slice(indexOfFirstDeceased, indexOfLastDeceased);
+ const totalPages = Math.ceil(filteredDeceased.length / itemsPerPage);
+
   return (
     <div className="container mx-auto mt-8">
       {/* Render BackButton here */}
@@ -118,6 +151,15 @@ const DeceasedTable = () => {
 
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Deceased Persons List</h2>
 
+ {/* Search Input */}
+ <input
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search by ID, Name, Household No."
+        className="w-full p-2 border border-gray-300 rounded mb-4"
+      />
+      
       <button
         onClick={() => setShowForm(!showForm)}
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
@@ -193,7 +235,7 @@ const DeceasedTable = () => {
               </tr>
             </thead>
             <tbody>
-  {Array.isArray(deceased) && deceased.map((person) => (
+  {Array.isArray(deceased) && currentDeceased.map((person) => (
     <tr key={person.id} className="border-b hover:bg-gray-100">
       <td className="px-6 py-4">{person.id_no}</td>
       <td className="px-6 py-4">{person.last_name}</td>
@@ -225,6 +267,13 @@ const DeceasedTable = () => {
           </table>
         </div>
       )}
+
+<ResponsivePagination
+        current={currentPage}
+        total={totalPages}
+        onPageChange={setCurrentPage}
+      />
+
     </div>
   );
 };

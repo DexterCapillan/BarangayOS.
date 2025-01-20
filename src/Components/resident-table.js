@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; // Import the BackButton
 
+import 'react-responsive-pagination/themes/classic.css';
+
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
   const [showForm, setShowForm] = useState(false); // State to toggle form visibility
@@ -21,20 +23,45 @@ const ResidentsTable = () => {
   const [occupation, setOccupation] = useState('');
   const [member, setMember] = useState('');
   const [isLoading, setIsLoading] = useState(true); // Loading indicator state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const [searchQuery, setSearchQuery] = useState('');  // Search query state
+  const [filteredResidents, setFilteredResidents] = useState([]); 
   
   // Fetch residents data
   useEffect(() => {
     fetch('http://localhost:5000/residents')
       .then((response) => response.json())
       .then((data) => {
+        console.log('Fetched residents:', data);  // Debugging data
         setResidents(data);
-        setIsLoading(false); // Data fetched successfully
+        setFilteredResidents(data);
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
         setIsLoading(false);
       });
   }, []);
+
+   // Debounced search functionality
+   useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (searchQuery) {
+        const filtered = residents.filter((resident) =>
+          resident.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resident.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resident.id_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          resident.household_no.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setFilteredResidents(filtered);
+      } else {
+        setFilteredResidents(residents);  // If search query is empty, show all residents
+      }
+    }, 300);  // 300ms debounce time
+
+    return () => clearTimeout(delayDebounceFn);  // Clear the timeout if searchQuery changes
+  }, [searchQuery, residents]);
 
   
   
@@ -112,12 +139,41 @@ const ResidentsTable = () => {
     }
   };
 
+  // pagination
+
+  const indexOfLastResident = currentPage * itemsPerPage;
+  const indexOfFirstResident = indexOfLastResident - itemsPerPage;
+  const currentResidents = filteredResidents.slice(indexOfFirstResident, indexOfLastResident);
+  const totalPages = Math.ceil(filteredResidents.length / itemsPerPage);
+
+// Determine the range of pages to display
+const pageRange = 5;  // Number of pages to display at once (you can adjust this)
+const startPage = Math.max(1, currentPage - Math.floor(pageRange / 2));
+const endPage = Math.min(totalPages, startPage + pageRange - 1);
+
+// Create an array of page numbers to display
+const pageNumbers = [];
+for (let i = startPage; i <= endPage; i++) {
+  pageNumbers.push(i);
+}
   
   return (
     <div className="container mx-auto mt-8 px-6">
       {/* Render BackButton here */}
       <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
+
+
+ {/* Search bar */}
+ <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full p-2 border border-gray-300 rounded"
+          placeholder="Search by ID, Name, Household No."
+        />
+      </div>
 
       <button
         onClick={() => setShowForm(!showForm)}
@@ -316,7 +372,7 @@ const ResidentsTable = () => {
             </tr>
           </thead>
           <tbody>
-  {residents.map((resident) => (
+  {currentResidents.map((resident) => (
     <tr key={resident.id} className="border-b hover:bg-gray-100">
       <td className="px-6 py-4">{resident.id_no}</td>
       <td className="px-6 py-4">{resident.last_name}</td>
@@ -349,6 +405,35 @@ const ResidentsTable = () => {
         </table>
       </div>
       )}
+
+       {/* Pagination */}
+ <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className="px-4 py-2 bg-gray-300 rounded-l"
+              disabled={currentPage === 1}
+            >
+              Prev
+            </button>
+            {currentPage > 1 && <span className="mx-2">...</span>}
+            {pageNumbers.map(page => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-4 py-2 ${currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-500'}`}
+              >
+                {page}
+              </button>
+            ))}
+            {currentPage < totalPages && <span className="mx-2">...</span>}
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              className="px-4 py-2 bg-gray-300 rounded-r"
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
     </div>
   );
 };
