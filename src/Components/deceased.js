@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import BackButton from './backbutton.js'; 
-import ResponsivePagination from 'react-responsive-pagination';
-import 'react-responsive-pagination/themes/classic.css';
+import BackButton from './backbutton.js';
 
 const DeceasedTable = () => {
-  const [deceased, setDeceased] = useState([]);  // Ensure initial value is an empty array
+  const [deceased, setDeceased] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [idNo, setIdNo] = useState('');
   const [lastName, setLastName] = useState('');
@@ -21,31 +19,34 @@ const DeceasedTable = () => {
   const [deathDate, setDeathDate] = useState('');
   const [causeOfDeath, setCauseOfDeath] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-  const [filteredDeceased, setFilteredDeceased] = useState([]);  // Store the filtered data
-  const [searchQuery, setSearchQuery] = useState('');  // Store the search query
+
+  // Calculate Age at Death
+  const calculateAgeAtDeath = (birthdate, deathDate) => {
+    const birth = new Date(birthdate);
+    const death = new Date(deathDate);
+    let age = death.getFullYear() - birth.getFullYear();
+    const m = death.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && death.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   // Fetch deceased data using fetch API
   useEffect(() => {
     fetch('http://localhost:5000/deceased')
       .then((response) => response.json())
       .then((data) => {
-        // Ensure data is an array
-        if (Array.isArray(data)) {
-          setDeceased(data);
-        } else {
-          console.error('Fetched data is not an array:', data);
-        }
-        setIsLoading(false);
+        console.log('Deceased data fetched:', data); // Debugging log
+        setDeceased(data.deceased); // Set the state
+        setIsLoading(false); // Set isLoading to false after data is fetched
       })
       .catch((error) => {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
+        console.error('Error fetching deceased:', error);
+        setIsLoading(false); // Even in case of error, stop loading state
       });
   }, []);
-
- 
+  
 
   // Handle form submission using fetch
   const handleSubmit = (e) => {
@@ -106,6 +107,7 @@ const DeceasedTable = () => {
       })
         .then((response) => {
           if (response.ok) {
+            alert('Record deleted successfully!');
             setDeceased((prevDeceased) =>
               prevDeceased.filter((deceasedPerson) => deceasedPerson.id !== id)
             );
@@ -117,49 +119,12 @@ const DeceasedTable = () => {
     }
   };
 
- // Search functionality
- useEffect(() => {
-  const delayDebounceFn = setTimeout(() => {
-    if (searchQuery) {
-      const filtered = deceased.filter((person) =>
-        person.first_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        person.last_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        person.id_no.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        person.household_no.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredDeceased(filtered);
-    } else {
-      setFilteredDeceased(deceased);  // If search query is empty, show all records
-    }
-  }, 300);  // 300ms debounce time
-
-  return () => clearTimeout(delayDebounceFn);
-}, [searchQuery, deceased]);
-
-
-
- // Pagination logic
- const indexOfLastDeceased = currentPage * itemsPerPage;
- const indexOfFirstDeceased = indexOfLastDeceased - itemsPerPage;
- const currentDeceased = filteredDeceased.slice(indexOfFirstDeceased, indexOfLastDeceased);
- const totalPages = Math.ceil(filteredDeceased.length / itemsPerPage);
-
   return (
     <div className="container mx-auto mt-8">
-      {/* Render BackButton here */}
       <BackButton />
 
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Deceased Persons List</h2>
 
- {/* Search Input */}
- <input
-        type="text"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        placeholder="Search by ID, Name, Household No."
-        className="w-full p-2 border border-gray-300 rounded mb-4"
-      />
-      
       <button
         onClick={() => setShowForm(!showForm)}
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
@@ -169,7 +134,6 @@ const DeceasedTable = () => {
 
       {showForm && (
         <form onSubmit={handleSubmit} className="mb-8">
-          {/* Form fields */}
           <div className="grid grid-cols-2 gap-4">
             <div className="mb-4">
               <label className="block text-gray-700">ID No.</label>
@@ -181,7 +145,36 @@ const DeceasedTable = () => {
                 required
               />
             </div>
-            {/* Other form fields */}
+            <div className="mb-4">
+              <label className="block text-gray-700">Last Name</label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">First Name</label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Middle Initial</label>
+              <input
+                type="text"
+                value={middleInitial}
+                onChange={(e) => setMiddleInitial(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+                required
+              />
+            </div>
             <div className="mb-4">
               <label className="block text-gray-700">Death Date</label>
               <input
@@ -202,6 +195,7 @@ const DeceasedTable = () => {
                 required
               />
             </div>
+            {/* Add other form fields here (householdNo, householdRole, etc.) */}
           </div>
           <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
             Add Deceased Person
@@ -228,52 +222,46 @@ const DeceasedTable = () => {
                 <th className="px-6 py-3">Subdivision</th>
                 <th className="px-6 py-3">Place of Birth</th>
                 <th className="px-6 py-3">Birthdate</th>
-                <th className="px-6 py-3">Age of death</th>
+                <th className="px-6 py-3">Age at Death</th>
                 <th className="px-6 py-3">Death Date</th>
                 <th className="px-6 py-3">Cause of Death</th>
                 <th className="px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
-  {Array.isArray(deceased) && currentDeceased.map((person) => (
-    <tr key={person.id} className="border-b hover:bg-gray-100">
-      <td className="px-6 py-4">{person.id_no}</td>
-      <td className="px-6 py-4">{person.last_name}</td>
-      <td className="px-6 py-4">{person.first_name}</td>
-      <td className="px-6 py-4">{person.middle_initial}</td>
-      <td className="px-6 py-4">{person.household_no}</td>
-      <td className="px-6 py-4">{person.household_role}</td>
-      <td className="px-6 py-4">{person.extension}</td>
-      <td className="px-6 py-4">{person.number}</td>
-      <td className="px-6 py-4">{person.street_name}</td>
-      <td className="px-6 py-4">{person.subdivision}</td>
-      <td className="px-6 py-4">{person.place_of_birth}</td>
-      <td className="px-6 py-4">{person.birthdate}</td>
-      <td className="px-6 py-4">{person.age_at_death}</td>
-      <td className="px-6 py-4">{person.death_date}</td>
-      <td className="px-6 py-4">{person.cause_of_death}</td>
-      <td className="px-6 py-4">
-        <button
-          onClick={() => handleDelete(person.id)}
-          className="bg-red-500 text-white px-4 py-2 rounded"
-        >
-          Delete
-        </button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
+              {Array.isArray(deceased) && deceased.map((person) => (
+                <tr key={person.id} className="border-b hover:bg-gray-100">
+                  <td className="px-6 py-4">{person.id_no}</td>
+                  <td className="px-6 py-4">{person.last_name}</td>
+                  <td className="px-6 py-4">{person.first_name}</td>
+                  <td className="px-6 py-4">{person.middle_initial}</td>
+                  <td className="px-6 py-4">{person.household_no}</td>
+                  <td className="px-6 py-4">{person.household_role}</td>
+                  <td className="px-6 py-4">{person.extension}</td>
+                  <td className="px-6 py-4">{person.number}</td>
+                  <td className="px-6 py-4">{person.street_name}</td>
+                  <td className="px-6 py-4">{person.subdivision}</td>
+                  <td className="px-6 py-4">{person.place_of_birth}</td>
+                  <td className="px-6 py-4">{person.birthdate}</td>
+                  <td className="px-6 py-4">
+                    {calculateAgeAtDeath(person.birthdate, person.death_date)}
+                  </td>
+                  <td className="px-6 py-4">{person.death_date}</td>
+                  <td className="px-6 py-4">{person.cause_of_death}</td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDelete(person.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
       )}
-
-<ResponsivePagination
-        current={currentPage}
-        total={totalPages}
-        onPageChange={setCurrentPage}
-      />
-
     </div>
   );
 };

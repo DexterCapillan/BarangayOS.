@@ -77,48 +77,6 @@ app.get('/residents', (req, res) => {
     });
   });
 });
-// Route to get all residents with pagination
-app.get('/residents', (req, res) => {
-  const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
-  const offset = (page - 1) * limit;  // Calculate the offset for the query
-
-  const query = 'SELECT * FROM residents LIMIT ? OFFSET ?';
-
-  pool.query(query, [limit, offset], (err, results) => {
-    if (err) {
-      console.error('Error fetching data:', err);
-      return res.status(500).json({ error: 'Failed to fetch data' });
-    }
-
-    // Get the total number of residents for pagination info
-    pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
-      if (err) {
-        console.error('Error fetching total count:', err);
-        return res.status(500).json({ error: 'Failed to fetch total count' });
-      }
-
-      const totalResidents = countResults[0].total;
-      const totalPages = Math.ceil(totalResidents / limit);  // Calculate the total number of pages
-
-      // Format each resident's birthdate to YYYY-MM-DD
-      const formattedResults = results.map((resident) => {
-        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
-        return {
-          ...resident,
-          birthdate: formattedBirthdate,
-        };
-      });
-
-      res.json({
-        residents: formattedResults,
-        currentPage: page,
-        totalPages: totalPages,
-        totalResidents: totalResidents,
-      });
-    });
-  });
-});
 
 // Route to add a new resident
 app.post('/residents', (req, res) => {
@@ -230,10 +188,10 @@ app.delete('/residents/:id', (req, res) => {
 
 // --- Deceased Persons Routes ---
 
-// Route to fetch all deceased persons with pagination
+// Route to fetch all deceased persons
 app.get('/deceased', (req, res) => {
   const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
+  const limit = parseInt(req.query.limit) || 15;  // Default to 10 items per page if not specified
   const offset = (page - 1) * limit;  // Calculate the offset for the query
 
   const query = 'SELECT * FROM deceased LIMIT ? OFFSET ?';
@@ -274,6 +232,7 @@ app.get('/deceased', (req, res) => {
     });
   });
 });
+
 
 // Route to add a new deceased person
 app.post('/deceased', (req, res) => {
@@ -378,6 +337,75 @@ app.delete('/deceased/:id', (req, res) => {
     res.status(200).json({ message: 'Deceased person deleted successfully' });
   });
 });
+app.post('/transfer-to-deceased', (req, res) => {
+  const { residentId } = req.body;
+
+  // Log the residentId being sent
+  console.log('Resident ID:', residentId);
+
+  // Fetch the resident details from the Residents table
+  pool.query('SELECT * FROM residents WHERE id = ?', [residentId], (err, results) => {
+    if (err) {
+      console.error('Error fetching resident:', err);
+      return res.status(500).json({ error: 'Failed to fetch resident' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+
+    const resident = results[0]; // Now `resident` is defined here
+
+    // Calculate age at death inside the same scope where `resident` is available
+    const deathDate = moment().format('YYYY-MM-DD'); // Use current date for death date
+    const causeOfDeath = 'Natural Causes'; // Example cause of death
+    const ageAtDeath = moment(deathDate).diff(moment(resident.birthdate), 'years'); // Calculate age at death
+
+    // Define the SQL query string for inserting into the deceased table
+    const query = `INSERT INTO deceased (
+      id_no, last_name, first_name, middle_initial, household_no, household_role, extension,
+      number, street_name, subdivision, place_of_birth, birthdate, death_date, cause_of_death, age_at_death
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    // Then perform the query
+    pool.query(query, [
+      resident.id_no,
+      resident.last_name,
+      resident.first_name,
+      resident.middle_initial,
+      resident.household_no,
+      resident.household_role,
+      resident.extension,
+      resident.number,
+      resident.street_name,
+      resident.subdivision,
+      resident.place_of_birth,
+      resident.birthdate,
+      deathDate,
+      causeOfDeath,
+      ageAtDeath
+    ], (insertErr) => {
+      if (insertErr) {
+        console.error('Error transferring to deceased:', insertErr); // Log insert error
+        return res.status(500).json({ error: 'Failed to transfer to deceased' });
+      }
+
+      console.log('Data successfully inserted into deceased table');
+      
+      // Now delete from the Residents table
+      pool.query('DELETE FROM residents WHERE id = ?', [residentId], (deleteErr) => {
+        if (deleteErr) {
+          console.error('Error deleting resident:', deleteErr); // Log delete error
+          return res.status(500).json({ error: 'Failed to delete resident' });
+        }
+
+        res.status(200).json({ message: 'Resident successfully transferred to deceased' });
+      });
+    });
+  });
+});
+
+
 
 // Start the server
 const PORT = 5000;
