@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; // Import the BackButton
+import Pagination from 'react-responsive-pagination'; // Pagination component
+import 'react-responsive-pagination/themes/classic.css'; // Pagination CSS
 
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
@@ -20,36 +22,35 @@ const ResidentsTable = () => {
   const [citizenship, setCitizenship] = useState('');
   const [occupation, setOccupation] = useState('');
   const [member, setMember] = useState('');
-  const [isLoading, setIsLoading] = useState(true); // Loading indicator state
+  const [loading, setLoading] = useState(true);// Loading indicator state
+  const [currentPage, setCurrentPage] = useState(1); // Current page state for pagination
+  const [totalPages, setTotalPages] = useState(1); // Total pages state for pagination
   
   // Fetch residents data
-  const fetchResidents = () => {
-    setIsLoading(true);
-    fetch('http://localhost:5000/residents?page=1&limit=10')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log(data);  // Logs the residents data
-        setResidents(data.residents);  // Set residents data in your state
-        setIsLoading(false);  // Stop loading spinner
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);  // Stop loading spinner even in case of error
-      });
+  const fetchResidents = async (page = 1) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/residents?page=${page}&limit=5`); // Ensure the limit is 5
+      const data = await response.json();
+      setResidents(data.residents);
+      setTotalPages(data.totalPages); // Set the total number of pages
+    } catch (error) {
+      console.error('Error fetching residents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchResidents(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
-  useEffect(() => {
-    fetchResidents();
-  }, []); // Fetch residents on component mount
   
-  
-
-  
-  
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
-  
     const newResident = {
       id_no: idNo,
       last_name: lastName,
@@ -124,7 +125,7 @@ const ResidentsTable = () => {
 // Handle transfer to Deceased table
 const handleTransfer = (resident) => {
   fetch('http://localhost:5000/transfer-to-deceased', {
-    method: 'POST',  // Make sure you're using POST
+    method: 'POST',  //  POST
     headers: {
       'Content-Type': 'application/json',
     },
@@ -197,6 +198,15 @@ const handleTransfer = (resident) => {
               />
             </div>
             <div className="mb-4">
+              <label className="block text-gray-700">Extension</label>
+              <input
+                type="text"
+                value={extension}
+                onChange={(e) => setExtension(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded"
+              />
+            </div>
+            <div className="mb-4">
               <label className="block text-gray-700">Household No.</label>
               <input
                 type="text"
@@ -211,15 +221,6 @@ const handleTransfer = (resident) => {
                 type="text"
                 value={householdRole}
                 onChange={(e) => setHouseholdRole(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Extension</label>
-              <input
-                type="text"
-                value={extension}
-                onChange={(e) => setExtension(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded"
               />
             </div>
@@ -242,7 +243,7 @@ const handleTransfer = (resident) => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700">Subdivision</label>
+              <label className="block text-gray-700">Subdivision/Purok</label>
               <input
                 type="text"
                 value={subdivision}
@@ -314,7 +315,7 @@ const handleTransfer = (resident) => {
         </form>
       )}
 
-      {isLoading ? (
+      {loading ? (
         <p className="text-gray-500">Loading...</p>
       ) : (
         <div className="overflow-x-auto max-w-full">
@@ -326,12 +327,12 @@ const handleTransfer = (resident) => {
               <th className="px-6 py-3">Last Name</th>
               <th className="px-6 py-3">First Name</th>
               <th className="px-6 py-3">Middle Initial</th>
+              <th className="px-6 py-3">Extension</th>
               <th className="px-6 py-3">Household No.</th>
               <th className="px-6 py-3">Household Role</th>
-              <th className="px-6 py-3">Extension</th>
               <th className="px-6 py-3">Number</th>
               <th className="px-6 py-3">Street Name</th>
-              <th className="px-6 py-3">Subdivision</th>
+              <th className="px-6 py-3">Subdivision/Purok</th>
               <th className="px-6 py-3">Place of Birth</th>
               <th className="px-6 py-3">Birthdate</th>
               <th className="px-6 py-3">Age</th>
@@ -349,9 +350,9 @@ const handleTransfer = (resident) => {
       <td className="px-6 py-4">{resident.last_name}</td>
       <td className="px-6 py-4">{resident.first_name}</td>
       <td className="px-6 py-4">{resident.middle_initial}</td>
+      <td className="px-6 py-4">{resident.extension}</td>
       <td className="px-6 py-4">{resident.household_no}</td>
       <td className="px-6 py-4">{resident.household_role}</td>
-      <td className="px-6 py-4">{resident.extension}</td>
       <td className="px-6 py-4">{resident.number}</td>
       <td className="px-6 py-4">{resident.street_name}</td>
       <td className="px-6 py-4">{resident.subdivision}</td>
@@ -378,6 +379,12 @@ const handleTransfer = (resident) => {
   ))}
 </tbody>
         </table>
+        {/* Pagination Component */}
+        <Pagination
+            current={currentPage}
+            total={totalPages}
+            onPageChange={handlePageChange}
+          />
       </div>
       )}
     </div>

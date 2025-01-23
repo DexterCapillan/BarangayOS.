@@ -35,11 +35,11 @@ const isValidDate = (dateString) => {
 };
 
 // --- Residents Routes ---
-// Route to get all residents with pagination
+// Backend route to fetch residents with pagination
 app.get('/residents', (req, res) => {
-  const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
-  const offset = (page - 1) * limit;  // Calculate the offset for the query
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 5;
+  const offset = (page - 1) * limit;
 
   const query = 'SELECT * FROM residents LIMIT ? OFFSET ?';
 
@@ -49,7 +49,6 @@ app.get('/residents', (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch data' });
     }
 
-    // Get the total number of residents for pagination info
     pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
       if (err) {
         console.error('Error fetching total count:', err);
@@ -57,22 +56,11 @@ app.get('/residents', (req, res) => {
       }
 
       const totalResidents = countResults[0].total;
-      const totalPages = Math.ceil(totalResidents / limit);  // Calculate the total number of pages
-
-      // Format each resident's birthdate to YYYY-MM-DD
-      const formattedResults = results.map((resident) => {
-        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
-        return {
-          ...resident,
-          birthdate: formattedBirthdate,
-        };
-      });
+      const totalPages = Math.ceil(totalResidents / limit);
 
       res.json({
-        residents: formattedResults,
-        currentPage: page,
+        residents: results,
         totalPages: totalPages,
-        totalResidents: totalResidents,
       });
     });
   });
@@ -191,7 +179,7 @@ app.delete('/residents/:id', (req, res) => {
 // Route to fetch all deceased persons
 app.get('/deceased', (req, res) => {
   const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit) || 15;  // Default to 10 items per page if not specified
+  const limit = parseInt(req.query.limit) || 30;  // Default to 10 items per page if not specified
   const offset = (page - 1) * limit;  // Calculate the offset for the query
 
   const query = 'SELECT * FROM deceased LIMIT ? OFFSET ?';

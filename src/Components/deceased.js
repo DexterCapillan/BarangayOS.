@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js';
+import Pagination from 'react-responsive-pagination'; // Pagination component
+import 'react-responsive-pagination/themes/classic.css'; // Pagination CSS
 
 const DeceasedTable = () => {
   const [deceased, setDeceased] = useState([]);
@@ -19,6 +21,10 @@ const DeceasedTable = () => {
   const [deathDate, setDeathDate] = useState('');
   const [causeOfDeath, setCauseOfDeath] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(5); // Default items per page
+ 
 
   // Calculate Age at Death
   const calculateAgeAtDeath = (birthdate, deathDate) => {
@@ -30,74 +36,88 @@ const DeceasedTable = () => {
       age--;
     }
     return age;
+}; 
+
+// Fetch deceased data using fetch API
+// Fetch deceased data using fetch API
+useEffect(() => {
+  // Define the async function to fetch data
+  const fetchDeceasedData = async () => {
+    setIsLoading(true); // Set loading state to true
+
+    try {
+      const response = await fetch(`http://localhost:5000/deceased?page=${currentPage}&limit=${itemsPerPage}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch deceased data');
+      }
+
+      const data = await response.json();
+      setDeceased(data.deceased);
+      setTotalPages(data.totalPages); // Update totalPages based on the server response
+    } catch (error) {
+      console.error('Error fetching deceased:', error);
+    } finally {
+      setIsLoading(false); // Stop loading spinner
+    }
   };
 
-  // Fetch deceased data using fetch API
-  useEffect(() => {
-    fetch('http://localhost:5000/deceased')
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Deceased data fetched:', data); // Debugging log
-        setDeceased(data.deceased); // Set the state
-        setIsLoading(false); // Set isLoading to false after data is fetched
-      })
-      .catch((error) => {
-        console.error('Error fetching deceased:', error);
-        setIsLoading(false); // Even in case of error, stop loading state
-      });
-  }, []);
-  
+  fetchDeceasedData(); // Call the function to fetch data
 
-  // Handle form submission using fetch
-  const handleSubmit = (e) => {
-    e.preventDefault();
+}, [currentPage, itemsPerPage]); // Include itemsPerPage in the dependency array
 
-    const newDeceased = {
-      id_no: idNo,
-      last_name: lastName,
-      first_name: firstName,
-      middle_initial: middleInitial,
-      household_no: householdNo,
-      household_role: householdRole,
-      extension: extension,
-      number: number,
-      street_name: streetName,
-      subdivision: subdivision,
-      place_of_birth: placeOfBirth,
-      birthdate,
-      death_date: deathDate,
-      cause_of_death: causeOfDeath,
-    };
+// Define the handlePageChange function for pagination
+const handlePageChange = (page) => {
+  setCurrentPage(page);
+};
 
-    fetch('http://localhost:5000/deceased', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newDeceased),
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const newDeceased = {
+    id_no: idNo,
+    last_name: lastName,
+    first_name: firstName,
+    middle_initial: middleInitial,
+    household_no: householdNo,
+    household_role: householdRole,
+    extension: extension,
+    number: number,
+    street_name: streetName,
+    subdivision: subdivision,
+    place_of_birth: placeOfBirth,
+    birthdate,
+    death_date: deathDate,
+    cause_of_death: causeOfDeath,
+  };
+
+  fetch('http://localhost:5000/deceased', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(newDeceased),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      alert('Deceased person added successfully!');
+      setDeceased((prevDeceased) => [...prevDeceased, data]);
+      setShowForm(false);
+      setIdNo('');
+      setLastName('');
+      setFirstName('');
+      setMiddleInitial('');
+      setHouseholdNo('');
+      setHouseholdRole('');
+      setExtension('');
+      setNumber('');
+      setStreetName('');
+      setSubdivision('');
+      setPlaceOfBirth('');
+      setBirthdate('');
+      setDeathDate('');
+      setCauseOfDeath('');
     })
-      .then((response) => response.json())
-      .then((data) => {
-        alert('Deceased person added successfully!');
-        setDeceased((prevDeceased) => [...prevDeceased, data]);
-        setShowForm(false);
-        setIdNo('');
-        setLastName('');
-        setFirstName('');
-        setMiddleInitial('');
-        setHouseholdNo('');
-        setHouseholdRole('');
-        setExtension('');
-        setNumber('');
-        setStreetName('');
-        setSubdivision('');
-        setPlaceOfBirth('');
-        setBirthdate('');
-        setDeathDate('');
-        setCauseOfDeath('');
-      })
-      .catch((error) => console.error('Error:', error));
-  };
+    .catch((error) => console.error('Error:', error));
+};
 
   // Handle deceased person deletion using fetch
   const handleDelete = (id) => {
@@ -260,6 +280,11 @@ const DeceasedTable = () => {
               ))}
             </tbody>
           </table>
+          <Pagination
+            current={currentPage}
+            total={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>
