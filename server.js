@@ -29,10 +29,10 @@ pool.getConnection((err, connection) => {
   connection.release();  // Release the connection
 });
 
-// Function to validate date format
 const isValidDate = (dateString) => {
   return moment(dateString, 'YYYY-MM-DD', true).isValid();
 };
+
 
 // --- Residents Routes ---
 // Backend route to fetch residents with pagination
@@ -49,6 +49,7 @@ app.get('/residents', (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch data' });
     }
 
+    // Fetch total count of residents
     pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
       if (err) {
         console.error('Error fetching total count:', err);
@@ -58,13 +59,26 @@ app.get('/residents', (req, res) => {
       const totalResidents = countResults[0].total;
       const totalPages = Math.ceil(totalResidents / limit);
 
+      // Format each resident's birthdate to YYYY-MM-DD
+      const formattedResults = results.map((resident) => {
+        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
+        return {
+          ...resident,
+          birthdate: formattedBirthdate,
+        };
+      });
+
+      // Respond with formatted data
       res.json({
-        residents: results,
+        residents: formattedResults,
+        currentPage: page,
         totalPages: totalPages,
+        totalResidents: totalResidents,
       });
     });
   });
 });
+
 
 // Route to add a new resident
 app.post('/residents', (req, res) => {
@@ -179,7 +193,7 @@ app.delete('/residents/:id', (req, res) => {
 // Route to fetch all deceased persons
 app.get('/deceased', (req, res) => {
   const page = parseInt(req.query.page) || 1;  // Default to page 1 if not specified
-  const limit = parseInt(req.query.limit) || 30;  // Default to 10 items per page if not specified
+  const limit = parseInt(req.query.limit) || 10;  // Default to 10 items per page if not specified
   const offset = (page - 1) * limit;  // Calculate the offset for the query
 
   const query = 'SELECT * FROM deceased LIMIT ? OFFSET ?';

@@ -318,7 +318,7 @@ const handleTransfer = (resident) => {
       {loading ? (
         <p className="text-gray-500">Loading...</p>
       ) : (
-        <div className="overflow-x-auto max-w-full">
+        <div className="overflow-x-auto">
 
         <table className="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
@@ -370,9 +370,13 @@ const handleTransfer = (resident) => {
         >
           Delete
         </button>
-        <button onClick={() => handleTransfer(resident)} className="bg-yellow-500 text-white px-1 py-1 rounded mt-1">
-                      Transfer to Deceased
-                    </button>
+        <button
+  onClick={() => handleTransfer(resident)}
+  className="bg-yellow-500 text-white px-1 py-1 rounded mt-1 hover:bg-yellow-600 active:bg-yellow-700"
+>
+  Transfer to Deceased
+</button>
+
         
       </td>
     </tr>
