@@ -126,11 +126,17 @@ app.post('/residents', (req, res) => {
     citizenship,
     birthdate,
     occupation,
+    sex, // Added sex field
   } = req.body;
 
   // Basic validation for missing fields
-  if (!id_no || !last_name || !first_name || !birthdate) {
+  if (!id_no || !last_name || !first_name || !birthdate || !sex) {
     return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  // Validate sex input
+  if (!['Male', 'Female'].includes(sex)) {
+    return res.status(400).json({ error: 'Invalid sex value. Use Male or Female.' });
   }
 
   // Validate the birthdate format
@@ -139,14 +145,16 @@ app.post('/residents', (req, res) => {
   }
 
   // Calculate age based on birthdate using Moment.js
-  const birthDate = moment(birthdate); // Convert the birthdate to a moment object
-  const age = moment().diff(birthDate, 'years'); // Calculate the age in years
+  const birthDate = moment(birthdate);
+  const age = moment().diff(birthDate, 'years');
 
-  console.log("Calculated Age:", age); // Debugging the age calculation
+  console.log("Calculated Age:", age); // Debugging
 
-  // SQL query to insert the resident data along with the calculated age
+  // SQL query to insert the resident data along with sex
   const query =
-    'INSERT INTO residents (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, civil_status, citizenship, birthdate, age, occupation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    `INSERT INTO residents 
+      (id_no, last_name, first_name, middle_initial, household_no, household_role, extension, number, street_name, subdivision, place_of_birth, civil_status, citizenship, birthdate, age, occupation, sex) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   pool.query(
     query,
@@ -167,6 +175,7 @@ app.post('/residents', (req, res) => {
       birthdate,
       age, // Add the calculated age
       occupation,
+      sex, // Include sex in query
     ],
     (err, results) => {
       if (err) {
@@ -190,12 +199,14 @@ app.post('/residents', (req, res) => {
         civil_status,
         citizenship,
         birthdate,
-        age, // Include the calculated age in the response
+        age, 
         occupation,
+        sex, // Include sex in response
       });
     }
   );
 });
+
 
 // --- Deceased Persons Routes ---
 

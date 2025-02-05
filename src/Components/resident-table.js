@@ -18,10 +18,10 @@ const ResidentsTable = () => {
   const [subdivision, setSubdivision] = useState('');
   const [placeOfBirth, setPlaceOfBirth] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [sex, setSex] = useState('');
   const [civilStatus, setCivilStatus] = useState('');
   const [citizenship, setCitizenship] = useState('');
   const [occupation, setOccupation] = useState('');
-  const [member, setMember] = useState('');
   const [loading, setLoading] = useState(true);// Loading indicator state
   const [currentPage, setCurrentPage] = useState(1); // Current page state for pagination
   const [totalPages, setTotalPages] = useState(1); // Total pages state for pagination
@@ -77,10 +77,11 @@ const ResidentsTable = () => {
       subdivision: subdivision,
       place_of_birth: placeOfBirth,
       birthdate,
+      sex: sex,
       civil_status: civilStatus,
       citizenship: citizenship,
       occupation,
-      member,
+     
     };
 
     fetch('http://localhost:5000/residents', {
@@ -111,7 +112,7 @@ const ResidentsTable = () => {
         setCivilStatus('');
         setCitizenship('');
         setOccupation('');
-        setMember('');
+        setSex('');
       })
       .catch((error) => console.error('Error:', error));
   };
@@ -188,178 +189,193 @@ const handleTransfer = (resident) => {
       >
         {showForm ? 'Hide Form' : 'Add New Resident'}
       </button>
-
+      
+      <div className="relative">
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-8">
-          {/* Form fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="mb-4">
-              <label className="block text-gray-700">ID No.</label>
-              <input
-                type="text"
-                value={idNo}
-                onChange={(e) => setIdNo(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Last Name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">First Name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Middle Initial</label>
-              <input
-                type="text"
-                value={middleInitial}
-                onChange={(e) => setMiddleInitial(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Extension</label>
-              <input
-                type="text"
-                value={extension}
-                onChange={(e) => setExtension(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Household No.</label>
-              <input
-                type="text"
-                value={householdNo}
-                onChange={(e) => setHouseholdNo(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Household Role</label>
-              <input
-                type="text"
-                value={householdRole}
-                onChange={(e) => setHouseholdRole(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Number</label>
-              <input
-                type="text"
-                value={number}
-                onChange={(e) => setNumber(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Street Name</label>
-              <input
-                type="text"
-                value={streetName}
-                onChange={(e) => setStreetName(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Subdivision/Purok</label>
-              <input
-                type="text"
-                value={subdivision}
-                onChange={(e) => setSubdivision(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Place of Birth</label>
-              <input
-                type="text"
-                value={placeOfBirth}
-                onChange={(e) => setPlaceOfBirth(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Birthdate</label>
-              <input
-                type="date"
-                value={birthdate}
-                onChange={(e) => setBirthdate(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Civil Status</label>
-              <input
-                type="text"
-                value={civilStatus}
-                onChange={(e) => setCivilStatus(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Citizenship</label>
-              <input
-                type="text"
-                value={citizenship}
-                onChange={(e) => setCitizenship(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Occupation</label>
-              <input
-                type="text"
-                value={occupation}
-                onChange={(e) => setOccupation(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Member</label>
-              <input
-                type="text"
-                value={member}
-                onChange={(e) => setMember(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded"
-                required
-              />
-            </div>
-          </div>
-          <button 
-  type="submit" 
-  className="bg-green-500 text-white px-4 py-2 rounded"
-  disabled={loading}
->
-            Add Resident
-          </button>
-        </form>
-      )}
+   <div className="absolute top-0 left-0 right-0 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg z-10">
+    <form onSubmit={handleSubmit} className="mb-8">
+      {/* Form fields */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="mb-4">
+          <label className="block text-gray-700">ID No.</label>
+          <input
+            type="text"
+            value={idNo}
+            onChange={(e) => setIdNo(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Last Name</label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">First Name</label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Middle Initial</label>
+          <input
+            type="text"
+            value={middleInitial}
+            onChange={(e) => setMiddleInitial(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Extension</label>
+          <input
+            type="text"
+            value={extension}
+            onChange={(e) => setExtension(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Household No.</label>
+          <input
+            type="text"
+            value={householdNo}
+            onChange={(e) => setHouseholdNo(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Household Role</label>
+          <input
+            type="text"
+            value={householdRole}
+            onChange={(e) => setHouseholdRole(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Number</label>
+          <input
+            type="text"
+            value={number}
+            onChange={(e) => setNumber(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Street Name</label>
+          <input
+            type="text"
+            value={streetName}
+            onChange={(e) => setStreetName(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Subdivision/Purok</label>
+          <input
+            type="text"
+            value={subdivision}
+            onChange={(e) => setSubdivision(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Place of Birth</label>
+          <input
+            type="text"
+            value={placeOfBirth}
+            onChange={(e) => setPlaceOfBirth(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Birthdate</label>
+          <input
+            type="date"
+            value={birthdate}
+            onChange={(e) => setBirthdate(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+        <div className="mb-4">
+  <label className="block text-gray-700">Sex</label>
+  <select
+    value={sex}
+    onChange={(e) => setSex(e.target.value)}
+    className="w-full p-2 border border-gray-300 rounded"
+    required
+  >
+    <option value="">Select</option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+  </select>
+</div>
+
+<div className="mb-4">
+  <label className="block text-gray-700">Civil Status</label>
+  <select
+    value={civilStatus}
+    onChange={(e) => setCivilStatus(e.target.value)}
+    className="w-full p-2 border border-gray-300 rounded"
+    required
+  >
+    <option value="">Select</option>
+    <option value="Single">Single</option>
+    <option value="Married">Married</option>
+    <option value="Widowed">Widowed</option>
+    <option value="Separated">Separated</option>
+  </select>
+</div>
+
+        <div className="mb-4">
+          <label className="block text-gray-700">Citizenship</label>
+          <input
+            type="text"
+            value={citizenship}
+            onChange={(e) => setCitizenship(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+          />
+        </div>
+        <div className="mb-4">
+          <label className="block text-gray-700">Occupation</label>
+          <input
+            type="text"
+            value={occupation}
+            onChange={(e) => setOccupation(e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded"
+            required
+          />
+        </div>
+       
+      </div>
+      <button 
+        type="submit" 
+        className="bg-green-500 text-white px-4 py-2 rounded"
+        disabled={loading}
+      >
+        Add Resident
+      </button>
+    </form>
+  </div>
+)}
 
 {loading ? (
   <div className="flex justify-center items-center h-20">
     <p className="text-gray-500 text-lg">Loading residents...</p>
   </div>
 ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto m-16">
 
         <table className="min-w-full table-auto border-collapse border border-gray-200">
           <thead>
@@ -377,10 +393,10 @@ const handleTransfer = (resident) => {
               <th className="px-6 py-3">Place of Birth</th>
               <th className="px-6 py-3">Birthdate</th>
               <th className="px-6 py-3">Age</th>
+              <th className="px-6 py-3">Sex</th>
               <th className="px-6 py-3">Civil Status</th>
               <th className="px-6 py-3">Citizenship</th>
               <th className="px-6 py-3">Occupation</th>
-              <th className="px-6 py-3">Member</th>
               <th className="px-6 py-3">Actions</th>
             </tr>
           </thead>
@@ -400,10 +416,10 @@ const handleTransfer = (resident) => {
       <td className="px-6 py-4">{resident.place_of_birth}</td>
       <td className="px-6 py-4">{resident.birthdate}</td>
       <td className="px-6 py-4">{resident.age}</td> {/* The backend should now send 'age' */}
+      <td className="px-6 py-4">{resident.sex}</td>
       <td className="px-6 py-4">{resident.civil_status}</td>
       <td className="px-6 py-4">{resident.citizenship}</td>
       <td className="px-6 py-4">{resident.occupation}</td>
-      <td className="px-6 py-4">{resident.member}</td>
       <td className="px-6 py-4 flex space-x-2">
         <button
           onClick={() => handleDelete(resident.id)}
@@ -432,6 +448,7 @@ const handleTransfer = (resident) => {
           />
       </div>
       )}
+    </div>
     </div>
   );
 };
