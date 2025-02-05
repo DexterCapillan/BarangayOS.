@@ -25,28 +25,41 @@ const ResidentsTable = () => {
   const [loading, setLoading] = useState(true);// Loading indicator state
   const [currentPage, setCurrentPage] = useState(1); // Current page state for pagination
   const [totalPages, setTotalPages] = useState(1); // Total pages state for pagination
+  const [minAge, setMinAge] = useState('');
+  const [maxAge, setMaxAge] = useState('');
+
+
   
   // Fetch residents data
-  const fetchResidents = async (page = 1) => {
+  const fetchResidents = async (page = 1, min = '', max = '') => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/residents?page=${page}&limit=5`); // Ensure the limit is 5
+      const query = new URLSearchParams({
+        page,
+        limit: 5,
+        minAge: min || '',
+        maxAge: max || '',
+      }).toString();
+      
+      const response = await fetch(`http://localhost:5000/residents?${query}`);
       const data = await response.json();
       setResidents(data.residents);
-      setTotalPages(data.totalPages); // Set the total number of pages
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error('Error fetching residents:', error);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    fetchResidents(currentPage);
-  }, [currentPage]);
+    fetchResidents(currentPage, minAge, maxAge);
+  }, [currentPage, minAge, maxAge]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
+  
 
   
   const handleSubmit = (e) => {
@@ -69,7 +82,7 @@ const ResidentsTable = () => {
       occupation,
       member,
     };
-  
+
     fetch('http://localhost:5000/residents', {
       method: 'POST',
       headers: {
@@ -102,7 +115,6 @@ const ResidentsTable = () => {
       })
       .catch((error) => console.error('Error:', error));
   };
-  
 
   // Handle resident deletion
   const handleDelete = (id) => {
@@ -140,13 +152,36 @@ const handleTransfer = (resident) => {
 };
 
 
-
   return (
     <div className="container mx-auto mt-8 px-6">
       {/* Render BackButton here */}
       <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
+ {/* Age Filter */}
+ <div className="mb-4 flex gap-4">
+        <input
+          type="number"
+          placeholder="Min Age"
+          value={minAge}
+          onChange={(e) => setMinAge(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="number"
+          placeholder="Max Age"
+          value={maxAge}
+          onChange={(e) => setMaxAge(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button 
+          onClick={() => fetchResidents(1, minAge, maxAge)}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Filter
+        </button>
+      </div>
+      
       <button
         onClick={() => setShowForm(!showForm)}
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
@@ -309,15 +344,21 @@ const handleTransfer = (resident) => {
               />
             </div>
           </div>
-          <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
+          <button 
+  type="submit" 
+  className="bg-green-500 text-white px-4 py-2 rounded"
+  disabled={loading}
+>
             Add Resident
           </button>
         </form>
       )}
 
-      {loading ? (
-        <p className="text-gray-500">Loading...</p>
-      ) : (
+{loading ? (
+  <div className="flex justify-center items-center h-20">
+    <p className="text-gray-500 text-lg">Loading residents...</p>
+  </div>
+) : (
         <div className="overflow-x-auto">
 
         <table className="min-w-full table-auto border-collapse border border-gray-200">
@@ -363,7 +404,7 @@ const handleTransfer = (resident) => {
       <td className="px-6 py-4">{resident.citizenship}</td>
       <td className="px-6 py-4">{resident.occupation}</td>
       <td className="px-6 py-4">{resident.member}</td>
-      <td className="px-6 py-4">
+      <td className="px-6 py-4 flex space-x-2">
         <button
           onClick={() => handleDelete(resident.id)}
           className="bg-red-500 text-white px-4 py-2 rounded"
@@ -372,7 +413,7 @@ const handleTransfer = (resident) => {
         </button>
         <button
   onClick={() => handleTransfer(resident)}
-  className="bg-yellow-500 text-white px-1 py-1 rounded mt-1 hover:bg-yellow-600 active:bg-yellow-700"
+  className="bg-yellow-500 text-white px-4 py-2 rounded"
 >
   Transfer to Deceased
 </button>

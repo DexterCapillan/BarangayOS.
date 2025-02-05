@@ -34,6 +34,9 @@ const isValidDate = (dateString) => {
 };
 
 
+
+
+
 // --- Residents Routes ---
 // Backend route to fetch residents with pagination
 app.get('/residents', (req, res) => {
@@ -41,7 +44,29 @@ app.get('/residents', (req, res) => {
   const limit = parseInt(req.query.limit) || 5;
   const offset = (page - 1) * limit;
 
-  const query = 'SELECT * FROM residents LIMIT ? OFFSET ?';
+  // Extract minAge and maxAge from query params
+  const minAge = req.query.minAge ? parseInt(req.query.minAge) : null;
+  const maxAge = req.query.maxAge ? parseInt(req.query.maxAge) : null;
+
+  // Base query
+  let query = 'SELECT *, TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) AS age FROM residents';
+  let conditions = [];
+
+  // Add age filtering conditions
+  if (minAge !== null) {
+    conditions.push(`TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) >= ${minAge}`);
+  }
+  if (maxAge !== null) {
+    conditions.push(`TIMESTAMPDIFF(YEAR, birthdate, CURDATE()) <= ${maxAge}`);
+  }
+
+  // Append conditions to query
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(' AND ')}`;
+  }
+
+  // Add pagination
+  query += ` LIMIT ? OFFSET ?`;
 
   pool.query(query, [limit, offset], (err, results) => {
     if (err) {
@@ -49,8 +74,13 @@ app.get('/residents', (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch data' });
     }
 
-    // Fetch total count of residents
-    pool.query('SELECT COUNT(*) AS total FROM residents', (err, countResults) => {
+    // Fetch total count with filtering
+    let countQuery = 'SELECT COUNT(*) AS total FROM residents';
+    if (conditions.length > 0) {
+      countQuery += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    pool.query(countQuery, (err, countResults) => {
       if (err) {
         console.error('Error fetching total count:', err);
         return res.status(500).json({ error: 'Failed to fetch total count' });
@@ -59,16 +89,13 @@ app.get('/residents', (req, res) => {
       const totalResidents = countResults[0].total;
       const totalPages = Math.ceil(totalResidents / limit);
 
-      // Format each resident's birthdate to YYYY-MM-DD
-      const formattedResults = results.map((resident) => {
-        const formattedBirthdate = moment(resident.birthdate).format('YYYY-MM-DD');
-        return {
-          ...resident,
-          birthdate: formattedBirthdate,
-        };
-      });
+      // Format birthdate
+      const formattedResults = results.map((resident) => ({
+        ...resident,
+        birthdate: moment(resident.birthdate).format('YYYY-MM-DD'),
+      }));
 
-      // Respond with formatted data
+      // Respond with filtered data
       res.json({
         residents: formattedResults,
         currentPage: page,
@@ -78,6 +105,7 @@ app.get('/residents', (req, res) => {
     });
   });
 });
+
 
 
 // Route to add a new resident
@@ -167,25 +195,6 @@ app.post('/residents', (req, res) => {
       });
     }
   );
-});
-
-// Route to delete a resident by id
-app.delete('/residents/:id', (req, res) => {
-  const residentId = req.params.id;
-  const query = 'DELETE FROM residents WHERE id = ?';
-
-  pool.query(query, [residentId], (err, results) => {
-    if (err) {
-      console.error('Error deleting resident:', err);
-      return res.status(500).json({ error: 'Failed to delete resident' });
-    }
-
-    if (results.affectedRows === 0) {
-      return res.status(404).json({ error: 'Resident not found' });
-    }
-
-    res.status(200).json({ message: 'Resident deleted successfully' });
-  });
 });
 
 // --- Deceased Persons Routes ---
