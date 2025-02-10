@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; // Import the BackButton
-import Pagination from 'react-responsive-pagination'; // Pagination component
-import 'react-responsive-pagination/themes/classic.css'; // Pagination CSS
+import Pagination from 'react-responsive-pagination'; 
+import 'react-responsive-pagination/themes/classic.css'; 
 
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
@@ -27,6 +27,7 @@ const ResidentsTable = () => {
   const [totalPages, setTotalPages] = useState(1); // Total pages state for pagination
   const [minAge, setMinAge] = useState('');
   const [maxAge, setMaxAge] = useState('');
+ 
 
 
   
@@ -133,6 +134,7 @@ const ResidentsTable = () => {
         .catch((error) => console.error('Error:', error));
     }
   };
+  
 
   
 // Handle transfer to Deceased table
@@ -159,8 +161,8 @@ const handleTransfer = (resident) => {
       <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
- {/* Age Filter */}
- <div className="mb-4 flex gap-4">
+       {/* Age Filter */}
+        <div className="mb-4 flex gap-4">
         <input
           type="number"
           placeholder="Min Age"
@@ -179,7 +181,7 @@ const handleTransfer = (resident) => {
           onClick={() => fetchResidents(1, minAge, maxAge)}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          Filter
+          Search
         </button>
       </div>
       
@@ -192,8 +194,8 @@ const handleTransfer = (resident) => {
       
       <div className="relative">
       {showForm && (
-   <div className="absolute top-0 left-0 right-0 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg z-10">
-    <form onSubmit={handleSubmit} className="mb-8">
+     <div className="absolute top-0 left-0 right-0 max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg z-10">
+     <form onSubmit={handleSubmit} className="mb-8">
       {/* Form fields */}
       <div className="grid grid-cols-2 gap-4">
         <div className="mb-4">
@@ -307,7 +309,7 @@ const handleTransfer = (resident) => {
             className="w-full p-2 border border-gray-300 rounded"
             required
           />
-        </div>
+        </div>  
         <div className="mb-4">
   <label className="block text-gray-700">Sex</label>
   <select
@@ -375,7 +377,7 @@ const handleTransfer = (resident) => {
     <p className="text-gray-500 text-lg">Loading residents...</p>
   </div>
 ) : (
-        <div className="overflow-x-auto m-16">
+        <div className="overflow-x-auto m-10">
 
         <table className="min-w-full table-auto border-collapse border border-gray-200">
           <thead>

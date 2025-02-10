@@ -126,7 +126,7 @@ app.post('/residents', (req, res) => {
     citizenship,
     birthdate,
     occupation,
-    sex, // Added sex field
+    sex, 
   } = req.body;
 
   // Basic validation for missing fields
@@ -206,6 +206,29 @@ app.post('/residents', (req, res) => {
     }
   );
 });
+
+// Route to delete a resident by ID
+app.delete('/residents/:id', (req, res) => {
+  const residentId = req.params.id;
+  const query = 'DELETE FROM residents WHERE id = ?';
+
+  pool.query(query, [residentId], (err, results) => {
+    if (err) {
+      console.error('Error deleting resident:', err);
+      return res.status(500).json({ error: 'Failed to delete resident' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Resident not found' });
+    }
+
+    res.status(200).json({ message: 'Resident deleted successfully' });
+  });
+});
+
+
+
+
 
 
 // --- Deceased Persons Routes ---

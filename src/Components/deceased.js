@@ -226,7 +226,7 @@ const handleSubmit = (e) => {
       {isLoading ? (
         <p className="text-gray-500">Loading...</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto m-10">
           <table className="min-w-full table-auto border-collapse border border-gray-200">
             <thead>
               <tr className="bg-green-500 text-white">
