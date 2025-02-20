@@ -314,13 +314,14 @@ const handleTransfer = (resident) => {
   <label className="block text-gray-700">Sex</label>
   <select
     value={sex}
-    onChange={(e) => setSex(e.target.value)}
+    onChange={(e) => setSex(e.target.value)}  
     className="w-full p-2 border border-gray-300 rounded"
     required
   >
     <option value="">Select</option>
     <option value="Male">Male</option>
     <option value="Female">Female</option>
+    
   </select>
 </div>
 
