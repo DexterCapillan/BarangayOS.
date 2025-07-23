@@ -2,6 +2,12 @@ import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; // Import the BackButton
 import Pagination from 'react-responsive-pagination'; 
 import 'react-responsive-pagination/themes/classic.css'; 
+<<<<<<< HEAD
+=======
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+
+>>>>>>> 958f6b5 (FixtheBOS)
 
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
@@ -155,12 +161,61 @@ const handleTransfer = (resident) => {
 };
 
 
+<<<<<<< HEAD
+=======
+const handleImport = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const bstr = evt.target.result;
+    const wb = XLSX.read(bstr, { type: 'binary' });
+    const wsName = wb.SheetNames[0];
+    const ws = wb.Sheets[wsName];
+    const data = XLSX.utils.sheet_to_json(ws);
+    setResidents(data); // This updates your state
+  };
+  reader.readAsBinaryString(file);
+};
+
+const exportToExcel = () => {
+  const worksheet = XLSX.utils.json_to_sheet(residents);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Residents');
+
+  const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+  saveAs(blob, 'residents.xlsx');
+};
+
+>>>>>>> 958f6b5 (FixtheBOS)
   return (
+
+    
     <div className="container mx-auto mt-8 px-6">
       {/* Render BackButton here */}
       <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
+<<<<<<< HEAD
+=======
+<div className="flex gap-4 mb-4">
+  <input
+    type="file"
+    accept=".xlsx, .xls"
+    onChange={handleImport}
+    className="bg-white border rounded px-2 py-1"
+  />
+  <button
+    onClick={exportToExcel}
+    className="bg-blue-600 text-white px-4 py-2 rounded"
+  >
+    Export to Excel
+  </button>
+</div>
+
+>>>>>>> 958f6b5 (FixtheBOS)
        {/* Age Filter */}
         <div className="mb-4 flex gap-4">
         <input
