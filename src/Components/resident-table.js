@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import BackButton from './backbutton.js'; // Import the BackButton
 import Pagination from 'react-responsive-pagination'; 
 import 'react-responsive-pagination/themes/classic.css'; 
-<<<<<<< HEAD
-=======
+
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
->>>>>>> 958f6b5 (FixtheBOS)
+
 
 const ResidentsTable = () => {
   const [residents, setResidents] = useState([]);
@@ -161,8 +160,6 @@ const handleTransfer = (resident) => {
 };
 
 
-<<<<<<< HEAD
-=======
 const handleImport = (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -189,7 +186,6 @@ const exportToExcel = () => {
   saveAs(blob, 'residents.xlsx');
 };
 
->>>>>>> 958f6b5 (FixtheBOS)
   return (
 
     
@@ -198,8 +194,6 @@ const exportToExcel = () => {
       <BackButton />
       <h2 className="text-2xl font-semibold text-gray-700 mb-4">Residents List</h2>
 
-<<<<<<< HEAD
-=======
 <div className="flex gap-4 mb-4">
   <input
     type="file"
@@ -215,7 +209,6 @@ const exportToExcel = () => {
   </button>
 </div>
 
->>>>>>> 958f6b5 (FixtheBOS)
        {/* Age Filter */}
         <div className="mb-4 flex gap-4">
         <input
